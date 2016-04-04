@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<script type="text/javascript" src="jquery-2.2.0.min.js"></script>
+<script type="text/javascript">
+function init()
+{
+   console.log("aaa");
+   var ROOT = 'https://pcd-2015-master.appspot.com/_ah/api';
+   gapi.client.load('pcd', 'v1', function() 
+   {
+	   gapi.client.pcd.tweets({'content':'bru'}).execute(function(resp) 
+	   {
+	      console.log(resp['items']);
+	      var it = resp['items'];
+	      for (var i = 0; i < it.length; i++)
+	      {
+	        var obj = jQuery.parseJSON(it[i]);
+	        console.log(obj);
+	      }
+	   });
+       console.log("done"); 
+   }, ROOT);
+   
+   
+}
+</script>
+<script src="https://apis.google.com/js/client.js?onload=init">
+</script>
+</head>
+<body>
+</body>
+</html>

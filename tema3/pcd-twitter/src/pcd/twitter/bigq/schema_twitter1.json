@@ -1,0 +1,51 @@
+[
+    {
+        "type": "timestamp",
+        "name": "created_at",
+        "mode": "nullable"
+    },
+    {
+        "type": "string",
+        "name": "lang",
+        "mode": "nullable"
+    },
+    {
+        "type": "string",
+        "name": "text",
+        "mode": "nullable"
+    },
+   {
+        "fields": [
+                {
+                    "type": "float",
+                    "name": "long",
+                    "mode": "nullable"
+                },
+                {
+                    "type": "float",
+                    "name": "lat",
+                    "mode": "nullable"
+                }
+            ],
+        "type": "record",
+        "name": "coordinates",
+        "mode": "nullable"
+   },
+    {
+        "fields": [
+            {
+                "type": "integer",
+                "name": "indices",
+                "mode": "repeated"
+            },
+            {
+                "type": "string",
+                "name": "text",
+                "mode": "nullable"
+            }
+        ],
+        "type": "record",
+        "name": "hashtags",
+        "mode": "repeated"
+    }
+]

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style type="text/css">
+html, body {
+   height: 100%;
+   margin: 0;
+   padding: 0;
+}
+
+#map {
+   height: 100%;
+}
+</style>
+<script type="text/javascript" src="jquery-2.2.0.min.js"></script>
+<script type="text/javascript" src="markerclusterer.js"></script> 
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBpU9z9Hd0vhY34XH30SYoZ1jQ1Omyf6L4"></script>
+<script type="text/javascript">
+var PCD_LOADED = false;
+function init()
+{
+   var ROOT = 'https://pcd-2015-master.appspot.com/_ah/api';
+   gapi.client.load('pcd', 'v1', function() 
+   {
+       console.log("loaded!");
+       PCD_LOADED = true; 
+   }, ROOT);
+   
+   
+}
+</script>
+<script src="https://apis.google.com/js/client.js?onload=init"></script>
+
+<script>
+      var map;
+      var markerCluster;
+      var imageUrl = 'http://chart.apis.google.com/chart?cht=mm&chs=24x32&chco=FFFFFF,008CFF,000000&ext=.png';
+      var markers = [];
+      
+      function showMap()
+      {
+         var txt = document.getElementById("filter_tweet").value;
+         loadTweets(txt);
+      }
+      
+      function loadTweets(txt)
+      { 
+        if (!PCD_LOADED)
+           return;
+
+        deleteMarkers();
+        if (markerCluster != undefined)
+        {
+           markerCluster.clearMarkers();
+        }
+        gapi.client.pcd.tweets({'content':txt}).execute(function(resp) 
+        {
+         var it = resp['items'];
+         for (var i = 0; i < it.length; i++)
+         {
+            var data = it[i]; // jQuery.parseJSON(it[i]);
+            var lon = data.lon;
+            var lat = data.lat;
+            var title = data.content;
+            var cnt = data.content + " Sentiment: " + data.sent;
+            var sent = data.sent;
+            
+            var myLatlng = new google.maps.LatLng(lat, lon);
+            var markerImage = new google.maps.MarkerImage(imageUrl, new google.maps.Size(24, 32));
+            
+            var marker = new google.maps.Marker(
+            {
+               position: myLatlng,
+               title: title,
+               icon: getCircle(sent)
+            });
+            
+            markers.push(marker);
+            
+            setInfoWindow(marker, cnt, myLatlng);
+         }
+
+         var mcStyle =
+         {
+            url: window.location.href + '/pin.png',
+            height: 48,
+            width: 30,
+            anchor: [-18, 0],
+            textColor: '#ffffff',
+            textSize: 10,
+            iconAnchor: [15, 48]
+         };
+         
+         var mcOptions =
+         {
+            gridSize: 20, 
+            maxZoom: 10, 
+            style: mcStyle
+         };
+         markerCluster = new MarkerClusterer(map, markers, mcOptions);
+        });
+        
+      }
+
+      function initialize() 
+      {
+        var mapOptions =
+        {
+          zoom: 2,
+          center: {lat: -33.865427, lng: 151.196123},
+          mapTypeId: google.maps.MapTypeId.TERRAIN
+        };
+        map = new google.maps.Map(document.getElementById('map'), mapOptions);
+        
+        showMap();
+      }
+      
+      function setInfoWindow(marker, title, myLatlng)
+      {
+         if (title == "")
+            return;
+
+         var infowindow = new google.maps.InfoWindow(
+         {
+            content: title,
+            position : myLatlng
+         });
+         marker.addListener('click', function(e)
+         {
+            infowindow.open(map, marker);
+         });
+      }
+      
+      function eqfeed_callback(results)
+      {
+         map.data.addGeoJson(results);
+      }
+
+      function getCircle(sent)
+      {
+        var r = Math.round(255.0 * sent);
+        var circle =
+        {
+          path: google.maps.SymbolPath.CIRCLE,
+          fillColor: ["rgb(",r,",",0,",",0,")"].join(""),
+          fillOpacity: sent,
+          scale: 25 * sent,
+          strokeColor: 'white',
+          strokeWeight: .5
+        };
+        
+        return circle;
+      }
+      
+      // Sets the map on all markers in the array.
+      function setMapOnAll(map)
+      {
+        for (var i = 0; i < markers.length; i++)
+        {
+           markers[i].setMap(map);
+        }
+      }
+      
+      // Removes the markers from the map, but keeps them in the array.
+      function clearMarkers()
+      {
+         setMapOnAll(null);
+      }
+      
+      // Shows any markers currently in the array.
+      function showMarkers()
+      {
+         setMapOnAll(map);
+      }
+      
+      // Deletes all markers in the array by removing references to them.
+      function deleteMarkers()
+      {
+        clearMarkers();
+        markers = [];
+      }
+      
+      // Call the initialize function after the page has finished loading
+      google.maps.event.addDomListener(window, 'load', initialize);
+  
+  </script>
+</head>
+<body>
+   <span>
+     Filter with: <input type="text" id="filter_tweet" value="love"/>
+     <input type="button" value="Filter" onclick="showMap()"/>
+   </span>
+   <div id="map"></div>
+</body>
+</html>
